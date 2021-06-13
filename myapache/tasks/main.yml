@@ -1,0 +1,54 @@
+---
+# tasks file for myapache
+- name: Creation of directory to be mounted
+  file:
+    state: directory
+    path: "{{ mount_directory }}"
+
+- name: Mounting directory created to CDROM
+  mount:
+    src: "/dev/cdrom"
+    path: "{{ mount_directory }}"
+    state: mounted
+    fstype: "iso9660"
+
+- name: YUM Repository - AppStream
+  yum_repository:
+    baseurl: "{{ mount_directory }}/AppStream"
+    name: "DVD1"
+    description: "YUM Repository - AppStream"
+    gpgcheck: no
+
+- name: YUM Repository - BaseOS
+  yum_repository:
+    baseurl: "{{ mount_directory }}/BaseOS"
+    name: "DVD2"
+    description: "YUM Repository - BaseOS"
+    gpgcheck: no
+
+- name: HTTPD Installation
+  package:
+    name: "httpd"
+    state: present
+  when: ansible_distribution == "RedHat"
+
+- name: Web Page Setup
+  template:
+    dest: "/var/www/html"
+    src: "/t15_2/myapache/files/index.html"
+
+- name: Setting SELinux Permissive
+  selinux:
+    policy: targeted
+    state: permissive
+
+- name: Stopping Firewall Service
+  service:
+    name: "firewalld"
+    state: stopped
+
+- name: Starting HTTPD Service
+  service:
+    name: "httpd"
+    state: started
+    enabled: yes
