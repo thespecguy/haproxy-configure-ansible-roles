@@ -1,0 +1,7 @@
+---
+# handlers file for myloadbalancer
+- name: Restart Load Balancer
+  systemd:
+    name: "haproxy"
+    state: restarted
+    enabled: yes
